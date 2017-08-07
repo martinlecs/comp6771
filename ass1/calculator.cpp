@@ -33,7 +33,6 @@ int main(int argc, char* argv[]) {
 
     //create an empty queue for 'repeat' command
     std::queue<std::string> repqueue;
-    repqueue.push("hello");
 
     //repeat flag
     bool repeat = false;
@@ -43,29 +42,39 @@ int main(int argc, char* argv[]) {
 
     // read the file while we have input.
     while (in >> s) {
-        if(s != "repeat" || s != "endrepeat") {
+        if(s != "repeat" && s != "endrepeat") {
             processString(st, s);
-        } else {
-            if (repeat && s != "endrepeat") {
-                repqueue.push(s);
-                //BUG: Not going into this statement
-            }          
-            if (s == "repeat") {
-                repeat = true;
-                repNum = std::stoi(st.top());
-                st.pop();
-            }
-            if (s == "endrepeat") {
-                std::cout << "endrepeat" << "\n";
+        } 
+        else if (repeat && s != "endrepeat") {
+            //BUG: Not pushing stuff onto the queue
+            std::cout << "Pushing crap onto queue\n";
+            repqueue.push(s);
+        } 
+        else if (s == "repeat") {
+            std::cout << "Entering repeat" << std::endl;
+            repeat = true;
 
-                repeat = false;
-                std::string repStr;
+            if(!repNum) std::cout << "repNum not 0\n";
+            repNum = std::stoi(st.top());
+            st.pop();
 
+        } 
+        else if (s == "endrepeat") {
+            //BUG: Still not entering statement
+            std::cout << "Entering endrepeat" << "\n";
+
+            repeat = false;
+            std::string repStr;
+
+            if(!repqueue.empty()) {
                 int i = 0;
                 while (i < repNum) {
 
-                    std::cout << i << "\n";
+                    std::cout << " in loop\n";
                     repStr = repqueue.front();
+
+                    //Segfault because nothing is being pushed onto
+                    //queue
 
                     processString(st, repStr);
                     repqueue.push(repStr);
@@ -75,14 +84,15 @@ int main(int argc, char* argv[]) {
                     if(repqueue.front() == "endrepeat")
                         ++i;
                 }
-                //clear queue
-                std::queue<std::string>().swap(repqueue);
             }
+            std::cout << "End endrepeat\n";
+            //clear queue
+            std::queue<std::string>().swap(repqueue);
         }
     }
     in.close();
-    //    printStack(st);
-    //    printQueue(repqueue);
+    // printStack(st);
+    //printQueue(repqueue);
 }
 
 void processString(std::stack<std::string>& st, std::string &s) {
@@ -261,6 +271,7 @@ void reverseStack(std::stack<std::string>& st) {
 }
 
 void printStack(std::stack<std::string>& st) {
+    std::cout << "Attempting to print out stack\n";
     while(!st.empty()) {
         std::string s = st.top();
         std::cout << s << std::endl;
@@ -275,3 +286,56 @@ void printQueue(std::queue<std::string>& qu) {
         qu.pop();
     }
 }
+/*
+   if (repeat && s != "endrepeat") {
+   std::cout << "Pushing crap onto queue\n";
+   repqueue.push(s);
+//BUG: Not going into this statement
+}          
+if (s == "repeat") {
+//BUG: Not entering this statement
+std::cout << "Entering repeat" << std::endl;
+repeat = true;
+std::cout << "need help\n";
+repNum = 0; 
+
+std::cout << st.top() << "\n";
+
+//repNum = std::stoi(st.top());
+std::cout << "cant print repNum\n";
+// Segfault here
+// st.pop();
+
+}
+if (s == "endrepeat") {
+//BUG: Still not entering statement
+std::cout << "endrepeat" << "\n";
+
+repeat = false;
+std::string repStr;
+
+int i = 0;
+while (i < repNum) {
+
+std::cout << i << "\n";
+//Assuming there are enough values on
+//the stack to play with ie.
+//Assume no segfault will happen due to an empty
+//stack
+repStr = repqueue.front();
+
+//Segfault because nothing is being pushed onto
+//queue
+
+processString(st, repStr);
+repqueue.push(repStr);
+repqueue.pop();
+
+//restart loop
+if(repqueue.front() == "endrepeat")
+++i;
+}
+//clear queue
+std::queue<std::string>().swap(repqueue);
+}*/
+
