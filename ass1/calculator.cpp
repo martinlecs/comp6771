@@ -13,6 +13,7 @@ void sqrtNumber(std::stack<std::string>& st);
 void reverseStack(std::stack<std::string>& st);
 void printStack(std::stack<std::string>& st);
 void printQueue(std::queue<std::string>& qu);
+void processString(std::stack<std::string>& st, std::string &s);
 
 int main(int argc, char* argv[]) {
 
@@ -32,6 +33,7 @@ int main(int argc, char* argv[]) {
 
     //create an empty queue for 'repeat' command
     std::queue<std::string> repqueue;
+    repqueue.push("hello");
 
     //repeat flag
     bool repeat = false;
@@ -41,69 +43,32 @@ int main(int argc, char* argv[]) {
 
     // read the file while we have input.
     while (in >> s) {
-        if(isdigit(s[0])) {
-            st.push(s);
-        }
-        else {
+        if(s != "repeat" || s != "endrepeat") {
+            processString(st, s);
+        } else {
             if (repeat && s != "endrepeat") {
                 repqueue.push(s);
-                continue;
+                //BUG: Not going into this statement
             }          
-            if (s == "add" && st.size() >= 2) {
-                addNumbers(st);   
-            }
-            if (s == "sub" && st.size() >= 2) {
-                subNumbers(st);
-            }
-            if (s == "mult" && st.size() >= 2) {
-                multNumbers(st);
-            }
-            if (s == "div" && st.size() >= 2) {
-                divNumbers(st);
-            }
-            if (s == "sqrt" && st.size() >= 1) {
-                sqrtNumber(st);
-            }
-            if (s == "pop" && !st.empty()) {
-                st.pop();
-            }
-            if (s == "reverse" && st.size() > 1) {
-                reverseStack(st);
-            }
             if (s == "repeat") {
                 repeat = true;
                 repNum = std::stoi(st.top());
                 st.pop();
             }
             if (s == "endrepeat") {
+                std::cout << "endrepeat" << "\n";
 
                 repeat = false;
+                std::string repStr;
 
-                for(int i = 0; i < repNum; ++i) {
+                int i = 0;
+                while (i < repNum) {
 
-                    if(isdigit(repqueue.front()[0]))
-                       st.push(repqueue.front());
-                    else {
-                        if(repqueue.front() == "add" && st.size() >= 2)
-                            addNumbers(st);
+                    std::cout << i << "\n";
+                    repStr = repqueue.front();
 
-                        if(repqueue.front() == "sub" && st.size() >= 2)
-                            subNumbers(st);
-
-                        if(repqueue.front() == "mult" && st.size() >= 2)
-                            multNumbers(st);
-
-                        if(repqueue.front() == "div" && st.size() >= 2)
-                            divNumbers(st);
-
-                        if(repqueue.front() == "sqrt" && !st.empty())
-                            sqrtNumber(st);
-
-                        if(repqueue.front() == "pop" && !st.empty())
-                           st.pop();
-                    }
-                    std::string n = repqueue.front();
-                    repqueue.push(n);
+                    processString(st, repStr);
+                    repqueue.push(repStr);
                     repqueue.pop();
 
                     //restart loop
@@ -116,33 +81,40 @@ int main(int argc, char* argv[]) {
         }
     }
     in.close();
-//    printStack(st);
-//    printQueue(repqueue);
+    //    printStack(st);
+    //    printQueue(repqueue);
 }
 
-void addNumbers(std::stack<std::string>& st) {
-    std::string num1 = st.top();
-    st.pop();
-    std::string num2 = st.top();
-    st.pop();
-
-    double i = std::stod(num1);
-    double j = std::stod(num2);
-    double sum = i + j;
-
-    std::cout << num1 << " + " << num2 << " = "; 
-   
-    if(num1.find('.') != std::string::npos || 
-            num2.find('.') != std::string::npos) {
-        std::cout << sum << "\n"; 
-        st.push(std::to_string(sum));
-    } else {
-        int int_sum = static_cast<int>(sum);
-        std::cout << int_sum << "\n";
-        st.push(std::to_string(int_sum));
+void processString(std::stack<std::string>& st, std::string &s) {
+    if(isdigit(s[0])) {
+        st.push(s);
     }
+    else {
+        if (s == "add" && st.size() >= 2) {
+            addNumbers(st);   
+        }
+        if (s == "sub" && st.size() >= 2) {
+            subNumbers(st);
+        }
+        if (s == "mult" && st.size() >= 2) {
+            multNumbers(st);
+        }
+        if (s == "div" && st.size() >= 2) {
+            divNumbers(st);
+        }
+        if (s == "sqrt" && st.size() >= 1) {
+            sqrtNumber(st);
+        }
+        if (s == "pop" && !st.empty()) {
+            st.pop();
+        }
+        if (s == "reverse" && st.size() > 1) {
+            reverseStack(st);
+        }
+    }
+
 }
-/*
+
 void addNumbers(std::stack<std::string>& st) {
     std::string num1 = st.top();
     st.pop();
@@ -158,7 +130,7 @@ void addNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(sum);
         st.push(res);
 
-        std::cout << i << " + " << j << " = " 
+        std::cout << num1 << " + " << num2 << " = " 
             << sum << std::endl;
     }
     else {
@@ -168,11 +140,10 @@ void addNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(sum);
         st.push(res);
 
-        std::cout << i << " + " << j << " = " 
+        std::cout << num1 << " + " << num2 << " = " 
             << sum << std::endl;
     }
-}*/
-
+}
 void subNumbers(std::stack<std::string>& st) {
     std::string num1 = st.top();
     st.pop();
@@ -188,7 +159,7 @@ void subNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(sum);
         st.push(res);
 
-        std::cout << i << " - " << j << " = " 
+        std::cout << num1 << " - " << num2 << " = " 
             << sum << std::endl;
     }
     else {
@@ -198,7 +169,7 @@ void subNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(sum);
         st.push(res);
 
-        std::cout << i << " - " << j << " = " 
+        std::cout << num1 << " - " << num2 << " = " 
             << sum << std::endl;
     }
 }
@@ -218,7 +189,7 @@ void multNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(mul);
         st.push(res);
 
-        std::cout << i << " * " << j << " = " 
+        std::cout << num1 << " * " << num2 << " = " 
             << mul << std::endl;
     }
     else {
@@ -228,7 +199,7 @@ void multNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(mul);
         st.push(res);
 
-        std::cout << i << " * " << j << " = " 
+        std::cout << num1 << " * " << num2 << " = " 
             << mul << std::endl;
     }
 }
@@ -247,7 +218,7 @@ void divNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(div);
         st.push(res);
 
-        std::cout << i << " / " << j << " = " 
+        std::cout << num1 << " / " << num2 << " = " 
             << div << std::endl;
     }
     else {
@@ -257,7 +228,7 @@ void divNumbers(std::stack<std::string>& st) {
         std::string res = std::to_string(div);
         st.push(res);
 
-        std::cout << i << " / " << j << " = " 
+        std::cout << num1 << " / " << num2 << " = " 
             << div << std::endl;
     }
 }
@@ -269,7 +240,7 @@ void sqrtNumber(std::stack<std::string>& st) {
     double res = sqrt(i);
     st.push(std::to_string(res));
 
-    std::cout << "sqrt " << i 
+    std::cout << "sqrt " << num 
         << " = " << res << std::endl;
 }
 void reverseStack(std::stack<std::string>& st) {
