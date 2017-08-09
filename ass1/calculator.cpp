@@ -4,6 +4,7 @@
 #include <stack>
 #include <cmath>
 #include <queue>
+#include <vector>
 
 void addNumbers(std::stack<std::string>& st);
 void subNumbers(std::stack<std::string>& st);
@@ -15,6 +16,8 @@ void printStack(std::stack<std::string>& st);
 void printQueue(std::queue<std::string>& qu);
 void processString(std::stack<std::string>& st, std::string &s);
 void processRepeats(std::ifstream &in, std::stack<std::string> &st);
+
+std::vector<std::string> loopVector;
 
 int main(int argc, char* argv[]) {
 
@@ -40,7 +43,7 @@ int main(int argc, char* argv[]) {
         processRepeats(in, st);
     }
     in.close();
-    // printStack(st);
+    printStack(st);
     //printQueue(repqueue);
 }
 
@@ -52,26 +55,27 @@ void processString(std::stack<std::string>& st, std::string &s) {
         if (s == "add" && st.size() >= 2) {
             addNumbers(st);   
         }
-        if (s == "sub" && st.size() >= 2) {
+        else if (s == "sub" && st.size() >= 2) {
             subNumbers(st);
         }
-        if (s == "mult" && st.size() >= 2) {
+        else if (s == "mult" && st.size() >= 2) {
             multNumbers(st);
         }
-        if (s == "div" && st.size() >= 2) {
+        else if (s == "div" && st.size() >= 2) {
             divNumbers(st);
         }
-        if (s == "sqrt" && st.size() >= 1) {
+        else if (s == "sqrt" && st.size() >= 1) {
             sqrtNumber(st);
         }
-        if (s == "pop" && !st.empty()) {
+        else if (s == "pop" && !st.empty()) {
             st.pop();
         }
-        if (s == "reverse" && st.size() > 1) {
+        else if (s == "reverse" && st.size() > 1) {
             reverseStack(st);
         }
         else {
-            std::cout << "Not enough variables on the stack" << std::endl;
+            std::cerr << "Not enough variables on the stack" 
+                << " or invalid input" << std::endl;
         }
     }
 }
@@ -79,39 +83,40 @@ void processString(std::stack<std::string>& st, std::string &s) {
 void processRepeats(std::ifstream &in, std::stack<std::string> &st) {
 
    //Create a new queue
-    std::queue<std::string> repQueue;
+    std::vector<std::string> history;
     
     //Get number of repetitions
     int numRepeat = std::stoi(st.top());
     st.pop();
-    std::cout << "numReps:"<< numRepeat << std::endl;
 
     std::string str;
 
     while (in >> str) { //continue processing file stream
         if (str == "repeat") {
-            //Need to handle unexpected output
-            st.push(repQueue.back());
-            repQueue.pop();
+            st.push(history.back());
+            history.pop_back();
             processRepeats(in, st);        
         } 
         else if (str != "endrepeat") {
-            repQueue.push(str);
-            std::cout << str << std::endl;
+            history.push_back(str);
         } 
         else if (str == "endrepeat") {
-            int i = 0;
-            while (i < numRepeat) {
-                std::string s = repQueue.front();
-                std::cout << "string=" << s << std::endl;
-                repQueue.push(s);
-                repQueue.pop();
-                processString(st, s);
-                ++i;
+
+            if(!history.empty()) {
+                int i = 1;
+
+                //Copy history and append it to current history
+                 std::vector<std::string> copy = history;
+
+                while (i < numRepeat) {
+                    history.insert(std::end(history), std::begin(copy), std::end(copy));
+                    ++i;
+                }
+
+                for (auto element : history)
+                    processString(st, element);
             }
-            printQueue(repQueue);
-            return;
-        }
+        }   
     }
 }
 
