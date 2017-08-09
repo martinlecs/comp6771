@@ -14,6 +14,7 @@ void reverseStack(std::stack<std::string>& st);
 void printStack(std::stack<std::string>& st);
 void printQueue(std::queue<std::string>& qu);
 void processString(std::stack<std::string>& st, std::string &s);
+void processRepeats(std::ifstream &in, std::stack<std::string> &st);
 
 int main(int argc, char* argv[]) {
 
@@ -31,64 +32,12 @@ int main(int argc, char* argv[]) {
     // create an empty stack
     std::stack<std::string> st;
 
-    //create an empty queue for 'repeat' command
-    std::queue<std::string> repqueue;
-
-    //repeat flag
-    bool repeat = false;
-
-    //variable to store number of times to repeat
-    int repNum;
-
     // read the file while we have input.
     while (in >> s) {
-        if(s != "repeat" && s != "endrepeat") {
+        if(s != "repeat") 
             processString(st, s);
-        } 
-        else if (repeat && s != "endrepeat") {
-            //BUG: Not pushing stuff onto the queue
-            std::cout << "Pushing crap onto queue\n";
-            repqueue.push(s);
-        } 
-        else if (s == "repeat") {
-            std::cout << "Entering repeat" << std::endl;
-            repeat = true;
-
-            if(!repNum) std::cout << "repNum not 0\n";
-            repNum = std::stoi(st.top());
-            st.pop();
-
-        } 
-        else if (s == "endrepeat") {
-            //BUG: Still not entering statement
-            std::cout << "Entering endrepeat" << "\n";
-
-            repeat = false;
-            std::string repStr;
-
-            if(!repqueue.empty()) {
-                int i = 0;
-                while (i < repNum) {
-
-                    std::cout << " in loop\n";
-                    repStr = repqueue.front();
-
-                    //Segfault because nothing is being pushed onto
-                    //queue
-
-                    processString(st, repStr);
-                    repqueue.push(repStr);
-                    repqueue.pop();
-
-                    //restart loop
-                    if(repqueue.front() == "endrepeat")
-                        ++i;
-                }
-            }
-            std::cout << "End endrepeat\n";
-            //clear queue
-            std::queue<std::string>().swap(repqueue);
-        }
+        else
+        processRepeats(in, st);
     }
     in.close();
     // printStack(st);
@@ -121,8 +70,49 @@ void processString(std::stack<std::string>& st, std::string &s) {
         if (s == "reverse" && st.size() > 1) {
             reverseStack(st);
         }
+        else {
+            std::cout << "Not enough variables on the stack" << std::endl;
+        }
     }
+}
 
+void processRepeats(std::ifstream &in, std::stack<std::string> &st) {
+
+   //Create a new queue
+    std::queue<std::string> repQueue;
+    
+    //Get number of repetitions
+    int numRepeat = std::stoi(st.top());
+    st.pop();
+    std::cout << "numReps:"<< numRepeat << std::endl;
+
+    std::string str;
+
+    while (in >> str) { //continue processing file stream
+        if (str == "repeat") {
+            //Need to handle unexpected output
+            st.push(repQueue.back());
+            repQueue.pop();
+            processRepeats(in, st);        
+        } 
+        else if (str != "endrepeat") {
+            repQueue.push(str);
+            std::cout << str << std::endl;
+        } 
+        else if (str == "endrepeat") {
+            int i = 0;
+            while (i < numRepeat) {
+                std::string s = repQueue.front();
+                std::cout << "string=" << s << std::endl;
+                repQueue.push(s);
+                repQueue.pop();
+                processString(st, s);
+                ++i;
+            }
+            printQueue(repQueue);
+            return;
+        }
+    }
 }
 
 void addNumbers(std::stack<std::string>& st) {
@@ -250,7 +240,7 @@ void sqrtNumber(std::stack<std::string>& st) {
     double res = sqrt(i);
     st.push(std::to_string(res));
 
-    std::cout << "sqrt " << num 
+    std::cout << "sqrt " << i 
         << " = " << res << std::endl;
 }
 void reverseStack(std::stack<std::string>& st) {
@@ -286,56 +276,3 @@ void printQueue(std::queue<std::string>& qu) {
         qu.pop();
     }
 }
-/*
-   if (repeat && s != "endrepeat") {
-   std::cout << "Pushing crap onto queue\n";
-   repqueue.push(s);
-//BUG: Not going into this statement
-}          
-if (s == "repeat") {
-//BUG: Not entering this statement
-std::cout << "Entering repeat" << std::endl;
-repeat = true;
-std::cout << "need help\n";
-repNum = 0; 
-
-std::cout << st.top() << "\n";
-
-//repNum = std::stoi(st.top());
-std::cout << "cant print repNum\n";
-// Segfault here
-// st.pop();
-
-}
-if (s == "endrepeat") {
-//BUG: Still not entering statement
-std::cout << "endrepeat" << "\n";
-
-repeat = false;
-std::string repStr;
-
-int i = 0;
-while (i < repNum) {
-
-std::cout << i << "\n";
-//Assuming there are enough values on
-//the stack to play with ie.
-//Assume no segfault will happen due to an empty
-//stack
-repStr = repqueue.front();
-
-//Segfault because nothing is being pushed onto
-//queue
-
-processString(st, repStr);
-repqueue.push(repStr);
-repqueue.pop();
-
-//restart loop
-if(repqueue.front() == "endrepeat")
-++i;
-}
-//clear queue
-std::queue<std::string>().swap(repqueue);
-}*/
-
