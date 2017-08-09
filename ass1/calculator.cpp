@@ -15,7 +15,7 @@ void reverseStack(std::stack<std::string>& st);
 void printStack(std::stack<std::string>& st);
 void printQueue(std::queue<std::string>& qu);
 void processString(std::stack<std::string>& st, std::string &s);
-void processRepeats(std::ifstream &in, std::stack<std::string> &st);
+void processRepeats(std::ifstream &in, std::stack<std::string> &st, std::vector<std::string> &history);
 
 std::vector<std::string> loopVector;
 
@@ -39,11 +39,15 @@ int main(int argc, char* argv[]) {
     while (in >> s) {
         if(s != "repeat") 
             processString(st, s);
-        else
-        processRepeats(in, st);
+        else {
+            std::vector<std::string> history;
+            processRepeats(in, st, history);
+            for (auto element : history)
+                processString(st, element);
+        }
     }
     in.close();
-    printStack(st);
+    //printStack(st);
     //printQueue(repqueue);
 }
 
@@ -80,11 +84,8 @@ void processString(std::stack<std::string>& st, std::string &s) {
     }
 }
 
-void processRepeats(std::ifstream &in, std::stack<std::string> &st) {
+void processRepeats(std::ifstream &in, std::stack<std::string> &st, std::vector<std::string> &history) {
 
-   //Create a new queue
-    std::vector<std::string> history;
-    
     //Get number of repetitions
     int numRepeat = std::stoi(st.top());
     st.pop();
@@ -95,7 +96,7 @@ void processRepeats(std::ifstream &in, std::stack<std::string> &st) {
         if (str == "repeat") {
             st.push(history.back());
             history.pop_back();
-            processRepeats(in, st);        
+            processRepeats(in, st, history);        
         } 
         else if (str != "endrepeat") {
             history.push_back(str);
@@ -112,9 +113,7 @@ void processRepeats(std::ifstream &in, std::stack<std::string> &st) {
                     history.insert(std::end(history), std::begin(copy), std::end(copy));
                     ++i;
                 }
-
-                for (auto element : history)
-                    processString(st, element);
+                return;
             }
         }   
     }
