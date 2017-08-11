@@ -15,7 +15,7 @@ void sqrtNumber(std::stack<std::string>& st);
 void reverseStack(std::stack<std::string>& st);
 void printStack(std::stack<std::string>& st);
 void processString(std::stack<std::string>& st, std::string &s);
-void processRepeats(std::ifstream &in, std::stack<std::string> &st, std::vector<std::string> &history);
+std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st);
 std::string modify_string_precision(std::string a_value);
 
 int main(int argc, char* argv[]) {
@@ -39,14 +39,13 @@ int main(int argc, char* argv[]) {
         if(s != "repeat") 
             processString(st, s);
         else {
-            std::vector<std::string> history;
-            processRepeats(in, st, history);
-            for (auto element : history)
+            std::vector<std::string> repeatedCommands = processRepeats(in, st);
+            for (auto element : repeatedCommands)
                 processString(st, element);
         }
     }
     in.close();
-    printStack(st);
+    //printStack(st);
 }
 
 void processString(std::stack<std::string>& st, std::string &s) {
@@ -87,10 +86,16 @@ void processString(std::stack<std::string>& st, std::string &s) {
     }
 }
 
-void processRepeats(std::ifstream &in, std::stack<std::string> &st, std::vector<std::string> &history) {
+std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st) {
 
+    //Gets number of repeats from the stack
     int numRepeat = std::stoi(st.top());
     st.pop();
+
+    //Create vectors to store result of current function call and future
+    //recursive calls
+    std::vector<std::string> history;
+    std::vector<std::string> prevRepeats;
 
     std::string str;
 
@@ -100,28 +105,33 @@ void processRepeats(std::ifstream &in, std::stack<std::string> &st, std::vector<
             //For handling nested repeats. Pops the number of reapeats
             //from the history. And then makes a recursive call to
             //processRepeats
+
             st.push(history.back());
             history.pop_back();
-            processRepeats(in, st, history);        
+            prevRepeats = processRepeats(in, st);        
         } 
         else if (str != "endrepeat") {
             history.push_back(str);
         } 
         else if (str == "endrepeat") {
 
-            if(!history.empty()) {
-                int i = 1;
+                //Append current recursive call's  history to previous
+                //recursive call's history.
+                history.insert(std::end(history), std::begin(prevRepeats), std::end(prevRepeats));
 
+                //Create a copy of the history vector
                 std::vector<std::string> copy = history;
+
+                int i = 1; //Set to 1 rather than 0 to get correct number of repeats
 
                 while (i < numRepeat) {
                     history.insert(std::end(history), std::begin(copy), std::end(copy));
                     ++i;
                 }
-            }
-            return;
+        break;
         }   
     }
+    return history;
 }
 
 void addNumbers(std::stack<std::string>& st) {
