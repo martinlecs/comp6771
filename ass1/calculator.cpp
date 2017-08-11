@@ -7,16 +7,17 @@
 #include <vector>
 #include <queue>
 
-void addNumbers(std::stack<std::string>& st);
-void subNumbers(std::stack<std::string>& st);
-void multNumbers(std::stack<std::string>& st);
-void divNumbers(std::stack<std::string>& st);
-void sqrtNumber(std::stack<std::string>& st);
-void reverseStack(std::stack<std::string>& st);
-void printStack(std::stack<std::string>& st);
+std::string addNumbers(std::string &num1, std::string &num2);
+std::string subNumbers(std::string &num1, std::string &num2);
+std::string multNumbers(std::string &num1, std::string &num2);
+std::string divNumbers(std::string &num1, std::string &num2);
+void sqrtNumber(std::stack<std::string> &st);
+void reverseStack(std::stack<std::string> &st);
+void printStack(std::stack<std::string> &st);
 void processString(std::stack<std::string>& st, std::string &s);
 std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st);
 std::string modify_string_precision(std::string a_value);
+void perform_arithmetic_command(std::stack<std::string> &st, std::string &str);
 
 int main(int argc, char* argv[]) {
 
@@ -58,30 +59,17 @@ void processString(std::stack<std::string>& st, std::string &s) {
         }
     }
     else {
-        if (s == "add" && st.size() >= 2) {
-            addNumbers(st);   
-        }
-        else if (s == "sub" && st.size() >= 2) {
-            subNumbers(st);
-        }
-        else if (s == "mult" && st.size() >= 2) {
-            multNumbers(st);
-        }
-        else if (s == "div" && st.size() >= 2) {
-            divNumbers(st);
-        }
-        else if (s == "sqrt" && st.size() >= 1) {
+        if(s == "sqrt") {
             sqrtNumber(st);
         }
-        else if (s == "pop" && !st.empty()) {
+        else if(s == "pop") {
             st.pop();
         }
-        else if (s == "reverse" && !st.empty()) {
+        else if(s == "reverse") {
             reverseStack(st);
         }
         else {
-            std::cerr << "Not enough variables on the stack" 
-                << " or invalid input" << std::endl;
+            perform_arithmetic_command(st, s);
         }
     }
 }
@@ -103,8 +91,7 @@ std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::strin
         if (str == "repeat") {
 
             //For handling nested repeats. Pops the number of reapeats
-            //from the history. And then makes a recursive call to
-            //processRepeats
+            //from the history. And then makes a recursive call to processRepeats
 
             st.push(history.back());
             history.pop_back();
@@ -115,8 +102,7 @@ std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::strin
         } 
         else if (str == "endrepeat") {
 
-                //Append current recursive call's  history to previous
-                //recursive call's history.
+                //Append current  call's history to previous recursive call's history.
                 history.insert(std::end(history), std::begin(prevRepeats), std::end(prevRepeats));
 
                 //Create a copy of the history vector
@@ -134,14 +120,37 @@ std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::strin
     return history;
 }
 
-void addNumbers(std::stack<std::string>& st) {
-    
+void perform_arithmetic_command(std::stack<std::string> &st, std::string &str) {
     //Pop off the top two variables from the stack
     std::string num1 = st.top();
     st.pop();
     std::string num2 = st.top();
     st.pop();
 
+    //Create a variable to store the result
+    std::string result;   
+
+    if(str == "add") {
+        result = addNumbers(num1, num2);
+    }
+    else if(str == "sub") {
+        result = subNumbers(num1, num2);
+    }
+    else if(str == "mult") {
+        result = multNumbers(num1, num2);
+    }
+    else if(str == "div") {
+        result = divNumbers(num1, num2);
+    } else {
+        std::cerr << "Not enough variables on the stack" 
+            << " or invalid input" << std::endl;
+    }
+    if(!result.empty())
+        st.push(result);
+}
+
+std::string addNumbers(std::string &num1, std::string &num2) {
+    
     //Create a variable to store the result
     std::string result;
 
@@ -155,20 +164,14 @@ void addNumbers(std::stack<std::string>& st) {
     else {
         result = std::to_string(std::stoi(num1) + std::stoi(num2));
     }
-    //Push result to stack
-    st.push(result);
-
     //Print out the equation
     std::cout << num1 << " + " << num2 << " = "
         << result << std::endl;
+
+    return result;
 }
 
-void subNumbers(std::stack<std::string>& st) {
-    //Pop off the top two variables from the stack
-    std::string num1 = st.top();
-    st.pop();
-    std::string num2 = st.top();
-    st.pop();
+std::string subNumbers(std::string &num1, std::string &num2){
 
     //Create a variable to store the result
     std::string result;
@@ -183,27 +186,21 @@ void subNumbers(std::stack<std::string>& st) {
     else {
         result = std::to_string(std::stoi(num1) - std::stoi(num2));
     }
-    //Push result to stack
-    st.push(result);
-
     //Print out the equation
     std::cout << num1 << " - " << num2 << " = " 
         << result << std::endl;
+
+    return result;
 }
 
-void multNumbers(std::stack<std::string>& st) {
-     //Pop off the top two variables from the stack
-    std::string num1 = st.top();
-    st.pop();
-    std::string num2 = st.top();
-    st.pop();
+std::string multNumbers(std::string &num1, std::string &num2){
 
     //Create a variable to store the result
     std::string result;
 
     //Check if either of the numbers are doubles
     if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-        //Multiply the two numbers together as doubles and push the result onto the stack
+        //Subtract the two numbers together as doubles and push the result onto the stack
         result = std::to_string(std::stod(num1) * std::stod(num2));
         result = modify_string_precision(result); //set precision of result 
     }
@@ -211,40 +208,33 @@ void multNumbers(std::stack<std::string>& st) {
     else {
         result = std::to_string(std::stoi(num1) * std::stoi(num2));
     }
-    //Push result to stack
-    st.push(result);
-
     //Print out the equation
     std::cout << num1 << " * " << num2 << " = " 
-        << result << std::endl; 
+        << result << std::endl;
+
+    return result;
 }
 
-void divNumbers(std::stack<std::string>& st) {
-    //Pop off the top two variables from the stack
-    std::string num1 = st.top();
-    st.pop();
-    std::string num2 = st.top();
-    st.pop();
+std::string divNumbers(std::string &num1, std::string &num2){
 
     //Create a variable to store the result
     std::string result;
 
     //Check if either of the numbers are doubles
     if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-
-        //Divide the two numbers together as doubles and push the result onto the stack
+        //Subtract the two numbers together as doubles and push the result onto the stack
         result = std::to_string(std::stod(num1) / std::stod(num2));
-        result = modify_string_precision(result); //set precision of result  
+        result = modify_string_precision(result); //set precision of result 
     }
     //otherwise the numbers must be ints
     else {
-        result  = std::to_string(std::stoi(num1) / std::stoi(num2));
+        result = std::to_string(std::stoi(num1) / std::stoi(num2));
     }
-    //Push result onto the stack
-    st.push(result);
     //Print out the equation
     std::cout << num1 << " / " << num2 << " = " 
         << result << std::endl;
+
+    return result;
 }
 
 void sqrtNumber(std::stack<std::string>& st) {
@@ -272,7 +262,6 @@ void sqrtNumber(std::stack<std::string>& st) {
     }
 }
 
-
 void reverseStack(std::stack<std::string>& st) {
     int n = std::stoi(st.top());
     st.pop();
@@ -294,7 +283,9 @@ void printStack(std::stack<std::string>& st) {
     std::cout << "Attempting to print out stack\n";
     while(!st.empty()) {
         std::string s = st.top();
-        std::cout << s << std::endl;
+        std::cout << s << " "; 
+        std::cout << std::endl;
+
         st.pop();
     }
 }
