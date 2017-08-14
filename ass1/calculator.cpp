@@ -7,17 +7,15 @@
 #include <vector>
 #include <queue>
 
-std::string addNumbers(std::string &num1, std::string &num2);
-std::string subNumbers(std::string &num1, std::string &num2);
-std::string multNumbers(std::string &num1, std::string &num2);
-std::string divNumbers(std::string &num1, std::string &num2);
+void processString(std::stack<std::string> &st, std::string &s);
+void performArithmetic(std::stack<std::string> &st, char operation);
+void printResults(std::string &num1, std::string &num2, std::string &result, 
+        char operation);
 void sqrtNumber(std::stack<std::string> &st);
 void reverseStack(std::stack<std::string> &st);
-void printStack(std::stack<std::string> &st);
-void processString(std::stack<std::string>& st, std::string &s);
-std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st);
 std::string modify_string_precision(std::string a_value);
-void perform_arithmetic_command(std::stack<std::string> &st, std::string &str);
+std::vector<std::string> processRepeats(std::ifstream &in, 
+        std::stack<std::string> &st);
 
 int main(int argc, char* argv[]) {
 
@@ -46,10 +44,9 @@ int main(int argc, char* argv[]) {
         }
     }
     in.close();
-    //printStack(st);
 }
 
-void processString(std::stack<std::string>& st, std::string &s) {
+void processString(std::stack<std::string> &st, std::string &s) {
     if(isdigit(s[0]) || isdigit(s[1])) {
         if(s.find ('.') != std::string::npos) {
             std::string converted = modify_string_precision(s);
@@ -68,59 +65,25 @@ void processString(std::stack<std::string>& st, std::string &s) {
         else if(s == "reverse") {
             reverseStack(st);
         }
-        else {
-            perform_arithmetic_command(st, s);
+        else if(s == "add") {
+            performArithmetic(st, '+');
+        }
+        else if( s == "sub") {
+            performArithmetic(st, '-');
+        }
+        else if(s == "mult") {
+            performArithmetic(st, '*');
+        }
+        else if(s == "div") {
+            performArithmetic(st, '/');
+        } else {
+            std::cerr << "Not enough variables on the stack" 
+                << " or invalid input" << std::endl;
         }
     }
 }
 
-std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st) {
-
-    //Gets number of repeats from the stack
-    int numRepeat = std::stoi(st.top());
-    st.pop();
-
-    //Create vectors to store result of current function call and future
-    //recursive calls
-    std::vector<std::string> history;
-    std::vector<std::string> prevRepeats;
-
-    std::string str;
-
-    while (in >> str) { //continue processing file stream
-        if (str == "repeat") {
-
-            //For handling nested repeats. Pops the number of reapeats
-            //from the history. And then makes a recursive call to processRepeats
-
-            st.push(history.back());
-            history.pop_back();
-            prevRepeats = processRepeats(in, st);        
-        } 
-        else if (str != "endrepeat") {
-            history.push_back(str);
-        } 
-        else if (str == "endrepeat") {
-
-                //Append current  call's history to previous recursive call's history.
-                history.insert(std::end(history), std::begin(prevRepeats), std::end(prevRepeats));
-
-                //Create a copy of the history vector
-                std::vector<std::string> copy = history;
-
-                int i = 1; //Set to 1 rather than 0 to get correct number of repeats
-
-                while (i < numRepeat) {
-                    history.insert(std::end(history), std::begin(copy), std::end(copy));
-                    ++i;
-                }
-        break;
-        }   
-    }
-    return history;
-}
-
-void perform_arithmetic_command(std::stack<std::string> &st, std::string &str) {
+void performArithmetic(std::stack<std::string> &st, char operation) {
     //Pop off the top two variables from the stack
     std::string num1 = st.top();
     st.pop();
@@ -128,145 +91,92 @@ void perform_arithmetic_command(std::stack<std::string> &st, std::string &str) {
     st.pop();
 
     //Create a variable to store the result
-    std::string result;   
-
-    if(str == "add") {
-        result = addNumbers(num1, num2);
-    }
-    else if(str == "sub") {
-        result = subNumbers(num1, num2);
-    }
-    else if(str == "mult") {
-        result = multNumbers(num1, num2);
-    }
-    else if(str == "div") {
-        result = divNumbers(num1, num2);
-    } else {
-        std::cerr << "Not enough variables on the stack" 
-            << " or invalid input" << std::endl;
-    }
-    if(!result.empty())
-        st.push(result);
-}
-
-std::string addNumbers(std::string &num1, std::string &num2) {
-    
-    //Create a variable to store the result
     std::string result;
 
     //Check if either of the numbers are doubles
-    if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-        //Add the two numbers together as doubles and push the result onto the stack
-        result = std::to_string(std::stod(num1) + std::stod(num2));
+    if(num1.find ('.') != std::string::npos || 
+            num2.find ('.') != std::string::npos ) {
+
+        if(operation == '+') {
+            //Add double numbers
+            result = std::to_string(std::stod(num1) + std::stod(num2));
+        }
+        else if (operation == '-') {
+            //sub double numbers
+            result = std::to_string(std::stod(num1) - std::stod(num2));
+        }
+        else if (operation == '*') {
+            //Multiply double numbers
+            result = std::to_string(std::stod(num1) * std::stod(num2));
+        }
+        else if (operation == '/') {
+            //Divide double numbers
+            result = std::to_string(std::stod(num1) / std::stod(num2));
+        }
+
         result = modify_string_precision(result); //set precision of result 
     }
+
     //otherwise the numbers must be ints
     else {
-        result = std::to_string(std::stoi(num1) + std::stoi(num2));
+        if(operation == '+') {
+            //Add int numbers
+            result = std::to_string(std::stoi(num1) + std::stoi(num2));
+        }
+        else if (operation == '-') {
+            //Sub int numbers
+            result = std::to_string(std::stoi(num1) - std::stoi(num2));
+        }
+        else if (operation == '*') {
+            //Multiply int numbers
+            result = std::to_string(std::stoi(num1) * std::stoi(num2));
+        }
+        else if (operation == '/') {
+            //Divide int numbers
+            result = std::to_string(std::stoi(num1) / std::stoi(num2));
+        }
     }
-    //Print out the equation
-    std::cout << num1 << " + " << num2 << " = "
-        << result << std::endl;
-
-    return result;
+    printResults(num1, num2, result, operation); 
+    st.push(result);
 }
 
-std::string subNumbers(std::string &num1, std::string &num2){
+void printResults(std::string &num1, std::string &num2, std::string &result, 
+        char operation) {
 
-    //Create a variable to store the result
-    std::string result;
-
-    //Check if either of the numbers are doubles
-    if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-        //Subtract the two numbers together as doubles and push the result onto the stack
-        result = std::to_string(std::stod(num1) - std::stod(num2));
-        result = modify_string_precision(result); //set precision of result 
-    }
-    //otherwise the numbers must be ints
-    else {
-        result = std::to_string(std::stoi(num1) - std::stoi(num2));
-    }
-    //Print out the equation
-    std::cout << num1 << " - " << num2 << " = " 
-        << result << std::endl;
-
-    return result;
+    std::cout << num1 << " " << operation << " " << num2 
+        << " = " << result << std::endl;
 }
 
-std::string multNumbers(std::string &num1, std::string &num2){
-
-    //Create a variable to store the result
-    std::string result;
-
-    //Check if either of the numbers are doubles
-    if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-        //Subtract the two numbers together as doubles and push the result onto the stack
-        result = std::to_string(std::stod(num1) * std::stod(num2));
-        result = modify_string_precision(result); //set precision of result 
-    }
-    //otherwise the numbers must be ints
-    else {
-        result = std::to_string(std::stoi(num1) * std::stoi(num2));
-    }
-    //Print out the equation
-    std::cout << num1 << " * " << num2 << " = " 
-        << result << std::endl;
-
-    return result;
-}
-
-std::string divNumbers(std::string &num1, std::string &num2){
-
-    //Create a variable to store the result
-    std::string result;
-
-    //Check if either of the numbers are doubles
-    if(num1.find ('.') != std::string::npos || num2.find ('.') != std::string::npos ) {
-        //Subtract the two numbers together as doubles and push the result onto the stack
-        result = std::to_string(std::stod(num1) / std::stod(num2));
-        result = modify_string_precision(result); //set precision of result 
-    }
-    //otherwise the numbers must be ints
-    else {
-        result = std::to_string(std::stoi(num1) / std::stoi(num2));
-    }
-    //Print out the equation
-    std::cout << num1 << " / " << num2 << " = " 
-        << result << std::endl;
-
-    return result;
-}
-
-void sqrtNumber(std::stack<std::string>& st) {
-    //Get top variable off stack
+void sqrtNumber(std::stack<std::string> &st) {
+    //get top variable off stack
     std::string num = st.top();
     st.pop();
 
     std::string result;
 
-    //Check that the number is not negative
+    //check that the number is not negative
     if(!(std::stoi(num) < 0)) {
-
         if(num.find('.') != std::string::npos) {
             result = std::to_string(sqrt(std::stod(num)));
             result = modify_string_precision(result);
         } else {
-            result = std::to_string(static_cast<int>(sqrt(std::stoi(num)))); //Need to static cast because sqrt returns a double value
-        }
-        //Push result onto stack
+
+            //need to static cast because sqrt returns a double value
+            result = std::to_string(static_cast<int>(sqrt(std::stoi(num))));        }
+        //push result onto stack
         st.push(result);
         std::cout << "sqrt " << num << " = " << result << std::endl;
 
     } else {
-        std::cerr << "Cannot perform sqrt on invalid number. Number must be >= 0" << std::endl;
+        std::cerr << "cannot perform sqrt on invalid number. number must be >= 0" << std::endl;
     }
 }
 
-void reverseStack(std::stack<std::string>& st) {
+void reverseStack(std::stack<std::string> &st) {
     int n = std::stoi(st.top());
     st.pop();
 
-    //Create a temporary queue to store values we want to reverse
+    //create a temporary queue to store values we want to reverse
     std::queue<std::string> qu;
 
     for(int i = 0; i < n; ++i) {
@@ -279,22 +189,57 @@ void reverseStack(std::stack<std::string>& st) {
     }
 }
 
-void printStack(std::stack<std::string>& st) {
-    std::cout << "Attempting to print out stack\n";
-    while(!st.empty()) {
-        std::string s = st.top();
-        std::cout << s << " "; 
-        std::cout << std::endl;
-
-        st.pop();
-    }
-}
-
 std::string modify_string_precision(std::string a_value) {
     double temp = std::stod(a_value);
     std::ostringstream stream;
     stream << std::fixed << std::setprecision(3) << temp;
     std::string rand = stream.str();
     return stream.str();
+}
+
+std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st) {
+
+    //gets number of repeats from the stack
+    int numRepeat = (st.top().find('.') != std::string::npos) ? static_cast<int>(std::stod(st.top())) : std::stoi(st.top());
+    st.pop();
+
+    //create vectors to store result of current function call and future
+    //recursive calls
+    std::vector<std::string> history;
+    std::vector<std::string> prevRepeats;
+
+    std::string str;
+
+    while (in >> str) { //continue processing file stream
+        if (str == "repeat") {
+
+            //for handling nested repeats. pops the number of reapeats
+            //from the history. and then makes a recursive call to processrepeats
+
+            st.push(history.back());
+            history.pop_back();
+            prevRepeats = processRepeats(in, st);        
+        } 
+        else if (str != "endrepeat") {
+            history.push_back(str);
+        } 
+        else if (str == "endrepeat") {
+
+            //Append current call's history to previous recursive call's history.
+            history.insert(std::end(history), std::begin(prevRepeats), std::end(prevRepeats));
+
+            //Create a copy of the history vector
+            std::vector<std::string> copy = history;
+
+            int i = 1; //Set to 1 rather than 0 to get correct number of repeats
+
+            while (i < numRepeat) {
+                history.insert(std::end(history), std::begin(copy), std::end(copy));
+                ++i;
+            }
+            break;
+        }   
+    }
+    return history;
 }
 
