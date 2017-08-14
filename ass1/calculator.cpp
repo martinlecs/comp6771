@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
         if(s != "repeat") 
             processString(st, s);
         else {
+            //Create a vector that stores repeated instructions
             std::vector<std::string> repeatedCommands = processRepeats(in, st);
             for (auto element : repeatedCommands)
                 processString(st, element);
@@ -47,7 +48,9 @@ int main(int argc, char* argv[]) {
 }
 
 void processString(std::stack<std::string> &st, std::string &s) {
+    //Check if string is a digit
     if(isdigit(s[0]) || isdigit(s[1])) {
+        //Check if string is a double
         if(s.find ('.') != std::string::npos) {
             std::string converted = modify_string_precision(s);
             st.push(converted);
@@ -94,8 +97,8 @@ void performArithmetic(std::stack<std::string> &st, char operation) {
     std::string result;
 
     //Check if either of the numbers are doubles
-    if(num1.find ('.') != std::string::npos || 
-            num2.find ('.') != std::string::npos ) {
+    if(num1.find('.') != std::string::npos || 
+            num2.find('.') != std::string::npos ) {
 
         if(operation == '+') {
             //Add double numbers
@@ -114,7 +117,7 @@ void performArithmetic(std::stack<std::string> &st, char operation) {
             result = std::to_string(std::stod(num1) / std::stod(num2));
         }
 
-        result = modify_string_precision(result); //set precision of result 
+       // result = modify_string_precision(result); //set precision of result 
     }
 
     //otherwise the numbers must be ints
@@ -142,9 +145,20 @@ void performArithmetic(std::stack<std::string> &st, char operation) {
 
 void printResults(std::string &num1, std::string &num2, std::string &result, 
         char operation) {
+    //Results are printed accurately but other stuff isn't anymore
 
-    std::cout << num1 << " " << operation << " " << num2 
+    if (result.find('.') != std::string::npos) {
+        //Convert to double
+        double res = std::stod(result);
+
+        std::cout << num1 << " " << operation << " " << num2
+        << " = " << res << std::endl;
+
+    } else {
+
+        std::cout << num1 << " " << operation << " " << num2
         << " = " << result << std::endl;
+    }
 }
 
 void sqrtNumber(std::stack<std::string> &st) {
@@ -160,13 +174,11 @@ void sqrtNumber(std::stack<std::string> &st) {
             result = std::to_string(sqrt(std::stod(num)));
             result = modify_string_precision(result);
         } else {
-
             //need to static cast because sqrt returns a double value
             result = std::to_string(static_cast<int>(sqrt(std::stoi(num))));        }
-        //push result onto stack
-        st.push(result);
-        std::cout << "sqrt " << num << " = " << result << std::endl;
-
+            //push result onto stack
+            st.push(result);
+            std::cout << "sqrt " << num << " = " << result << std::endl;
     } else {
         std::cerr << "cannot perform sqrt on invalid number. number must be >= 0" << std::endl;
     }
@@ -189,18 +201,10 @@ void reverseStack(std::stack<std::string> &st) {
     }
 }
 
-std::string modify_string_precision(std::string a_value) {
-    double temp = std::stod(a_value);
-    std::ostringstream stream;
-    stream << std::fixed << std::setprecision(3) << temp;
-    std::string rand = stream.str();
-    return stream.str();
-}
-
 std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::string> &st) {
 
     //gets number of repeats from the stack
-    int numRepeat = (st.top().find('.') != std::string::npos) ? static_cast<int>(std::stod(st.top())) : std::stoi(st.top());
+    int numRepeat = std::stoi(st.top());
     st.pop();
 
     //create vectors to store result of current function call and future
@@ -243,3 +247,10 @@ std::vector<std::string> processRepeats(std::ifstream &in, std::stack<std::strin
     return history;
 }
 
+std::string modify_string_precision(std::string a_value) {
+    double temp = std::stod(a_value);
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(3) << temp;
+    std::string rand = stream.str();
+    return stream.str();
+}
