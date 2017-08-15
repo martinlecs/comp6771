@@ -16,6 +16,7 @@ void reverseStack(std::stack<std::string> &st);
 std::string modify_string_precision(std::string a_value);
 std::vector<std::string> processRepeats(std::ifstream &in, 
         std::stack<std::string> &st);
+void printEquations(std::string str);
 
 int main(int argc, char* argv[]) {
 
@@ -117,7 +118,8 @@ void performArithmetic(std::stack<std::string> &st, char operation) {
             result = std::to_string(std::stod(num1) / std::stod(num2));
         }
 
-       // result = modify_string_precision(result); //set precision of result 
+        st.push(result);
+        result = modify_string_precision(result); //set precision of result 
     }
 
     //otherwise the numbers must be ints
@@ -138,26 +140,24 @@ void performArithmetic(std::stack<std::string> &st, char operation) {
             //Divide int numbers
             result = std::to_string(std::stoi(num1) / std::stoi(num2));
         }
+        st.push(result);
     }
-    printResults(num1, num2, result, operation); 
-    st.push(result);
+
+    printEquations(num1);
+    std::cout << " " << operation << " ";
+    printEquations(num2);
+    std::cout << " = ";
+    std::cout << result << std::endl;
+
 }
 
-void printResults(std::string &num1, std::string &num2, std::string &result, 
-        char operation) {
-    //Results are printed accurately but other stuff isn't anymore
-
-    if (result.find('.') != std::string::npos) {
-        //Convert to double
-        double res = std::stod(result);
-
-        std::cout << num1 << " " << operation << " " << num2
-        << " = " << res << std::endl;
-
+void printEquations(std::string str) {
+    if (str.find('.') != std::string::npos) {
+        double num = std::stod(str);
+        std::cout << num;
     } else {
-
-        std::cout << num1 << " " << operation << " " << num2
-        << " = " << result << std::endl;
+        int num = std::stoi(str);
+        std::cout << num;
     }
 }
 
